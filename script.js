@@ -5,17 +5,18 @@ const list = document.getElementById("taskList");
 // add event listener to call addTask
 addButton.addEventListener("click", addTask);
 
-function addTask() {
-    // check that the input isnt empty
-    if (input.value.trim() === "") {
-        return;
-    }
+// Load tasks from localStorage on page load
+window.addEventListener("DOMContentLoaded", function() {
+    const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    tasks.forEach(task => {
+        renderTask(task.text, task.completed);
+    });
+});
 
-    // create a new <li> with the task text
+function renderTask(text, completed) {
     const newTask = document.createElement("li");
-    newTask.textContent = input.value;
-
-    // create buttons
+    newTask.textContent = text;
+    if (completed) newTask.classList.add("completed");
 
     const completeBtn = document.createElement("button");
     completeBtn.textContent = "V";
@@ -25,19 +26,36 @@ function addTask() {
     deleteBtn.textContent = "X";
     deleteBtn.classList.add("task-btn");
 
-    // add event listeners to the buttons
     completeBtn.addEventListener("click", function() {
         newTask.classList.toggle("completed");
+        updateLocalStorage();
     });
     deleteBtn.addEventListener("click", function() {
         newTask.remove();
+        updateLocalStorage();
     });
 
-    // append buttons to <li>
     newTask.appendChild(completeBtn);
     newTask.appendChild(deleteBtn);
-    // append <li> to <ul>
     list.appendChild(newTask);
-    // clear input field 
+}
+
+function addTask() {
+    if (input.value.trim() === "") {
+        return;
+    }
+    renderTask(input.value, false);
+    updateLocalStorage();
     input.value = "";
+}
+
+function updateLocalStorage() {
+    const tasks = [];
+    list.querySelectorAll("li").forEach(li => {
+        tasks.push({
+            text: li.childNodes[0].nodeValue,
+            completed: li.classList.contains("completed")
+        });
+    });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
 }
